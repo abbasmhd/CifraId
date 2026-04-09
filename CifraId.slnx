@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/CifraId.SampleApi/CifraId.SampleApi.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/CifraId.Core/CifraId.Core.csproj" />
+    <Project Path="src/CifraId.AspNetCore/CifraId.AspNetCore.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CifraId.Core.Tests/CifraId.Core.Tests.csproj" />
+    <Project Path="tests/CifraId.AspNetCore.Tests/CifraId.AspNetCore.Tests.csproj" />
+  </Folder>
+</Solution>

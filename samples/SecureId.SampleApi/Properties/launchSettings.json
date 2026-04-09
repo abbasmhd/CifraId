@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "SecureId.SampleApi": {
+    "CifraId.SampleApi": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

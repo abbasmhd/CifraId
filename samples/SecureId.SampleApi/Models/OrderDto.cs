@@ -1,29 +1,29 @@
-using SecureId.Attributes;
+using CifraId.Attributes;
 
-namespace SecureId.SampleApi.Models;
+namespace CifraId.SampleApi.Models;
 
 public class OrderResponseDto
 {
-    [SecureId]
+    [CifraId]
     public int OrderId { get; set; }
 
     public string CustomerName { get; set; } = string.Empty;
 
-    [SecureId]
+    [CifraId]
     public OrderStatus Status { get; set; }
 
     public decimal TotalAmount { get; set; }
 
-    [SecureId]
+    [CifraId]
     public int? AssignedAgentId { get; set; }
 }
 
 public class OrderQueryDto
 {
-    [SecureId]
+    [CifraId]
     public int OrderId { get; set; }
 
-    [SecureId]
+    [CifraId]
     public OrderStatus? Status { get; set; }
 }
 

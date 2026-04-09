@@ -1,16 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
-using SecureId.SampleApi.Models;
-using SecureId.Services;
+using CifraId.SampleApi.Models;
+using CifraId.Services;
 
-namespace SecureId.SampleApi.Controllers;
+namespace CifraId.SampleApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 public class OrdersController : ControllerBase
 {
-    private readonly ISecureIdService _secureId;
+    private readonly ICifraIdService _cifraId;
 
-    public OrdersController(ISecureIdService secureId) => _secureId = secureId;
+    public OrdersController(ICifraIdService cifraId) => _cifraId = cifraId;
 
     /// <summary>
     /// Returns a list of orders with encoded IDs and enum values.
@@ -22,19 +22,25 @@ public class OrdersController : ControllerBase
         {
             new OrderResponseDto
             {
-                OrderId = 1, CustomerName = "Alice",
-                Status = OrderStatus.Processing, TotalAmount = 99.99m,
+                OrderId = 1,
+                CustomerName = "Alice",
+                Status = OrderStatus.Processing,
+                TotalAmount = 99.99m,
             },
             new OrderResponseDto
             {
-                OrderId = 2, CustomerName = "Bob",
-                Status = OrderStatus.Shipped, TotalAmount = 149.50m,
+                OrderId = 2,
+                CustomerName = "Bob",
+                Status = OrderStatus.Shipped,
+                TotalAmount = 149.50m,
                 AssignedAgentId = 10,
             },
             new OrderResponseDto
             {
-                OrderId = 3, CustomerName = "Charlie",
-                Status = OrderStatus.Delivered, TotalAmount = 299.00m,
+                OrderId = 3,
+                CustomerName = "Charlie",
+                Status = OrderStatus.Delivered,
+                TotalAmount = 299.00m,
             },
         };
 
@@ -47,7 +53,7 @@ public class OrdersController : ControllerBase
     [HttpGet("{encodedId}")]
     public ActionResult<OrderResponseDto> GetOrder(string encodedId)
     {
-        var orderId = _secureId.DecodeId(encodedId);
+        var orderId = _cifraId.DecodeId(encodedId);
         if (orderId is null)
             return BadRequest("Invalid order ID.");
 
@@ -61,8 +67,7 @@ public class OrdersController : ControllerBase
     }
 
     /// <summary>
-    /// Demonstrates query-string model binding with SecureId.
-    /// Pass encoded orderId and/or status via query string.
+    /// Demonstrates query-string model binding with CifraId. Pass encoded orderId and/or status via query string.
     /// </summary>
     [HttpGet("search")]
     public ActionResult<OrderResponseDto[]> SearchOrders([FromQuery] OrderQueryDto query)
@@ -83,13 +88,13 @@ public class OrdersController : ControllerBase
     }
 
     /// <summary>
-    /// Shows manual encode/decode usage via ISecureIdService.
+    /// Shows manual encode/decode usage via ICifraIdService.
     /// </summary>
     [HttpGet("manual")]
     public ActionResult ManualExample()
     {
-        var encoded = _secureId.EncodeId(42);
-        var decoded = _secureId.DecodeId(encoded);
+        var encoded = _cifraId.EncodeId(42);
+        var decoded = _cifraId.DecodeId(encoded);
 
         return Ok(new { Original = 42, Encoded = encoded, Decoded = decoded });
     }
