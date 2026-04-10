@@ -31,10 +31,14 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
     public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.Null)
+        {
             return null;
+        }
 
         if (reader.TokenType != JsonTokenType.StartObject)
+        {
             throw new JsonException($"Expected StartObject, got {reader.TokenType}.");
+        }
 
         var result = (T)Activator.CreateInstance(typeof(T))!;
         var metadata = GetMetadata();
@@ -43,10 +47,14 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
         while (reader.Read())
         {
             if (reader.TokenType == JsonTokenType.EndObject)
+            {
                 return result;
+            }
 
             if (reader.TokenType != JsonTokenType.PropertyName)
+            {
                 throw new JsonException($"Expected PropertyName, got {reader.TokenType}.");
+            }
 
             var jsonPropName = reader.GetString()!;
             reader.Read();
@@ -64,9 +72,13 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
             }
 
             if (meta.CifraIdAttr is not null)
+            {
                 ReadCifraIdProperty(ref reader, result, meta);
+            }
             else
+            {
                 ReadRegularProperty(ref reader, result, meta, options);
+            }
         }
 
         throw new JsonException("Unexpected end of JSON object.");
@@ -88,7 +100,10 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
 
         foreach (var meta in metadata)
         {
-            if (meta.IsIgnored) continue;
+            if (meta.IsIgnored)
+            {
+                continue;
+            }
 
             var jsonName = ResolveJsonName(meta, namingPolicy);
             var propValue = meta.Property.GetValue(value);
@@ -96,11 +111,17 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
             writer.WritePropertyName(jsonName);
 
             if (meta.CifraIdAttr is not null)
+            {
                 WriteCifraIdValue(writer, propValue, meta.Property.PropertyType);
+            }
             else if (meta.Property.PropertyType == typeof(string) && propValue is string str)
+            {
                 writer.WriteStringValue(_transform.Transform(meta.Property, str));
+            }
             else
+            {
                 JsonSerializer.Serialize(writer, propValue, meta.Property.PropertyType, options);
+            }
         }
 
         writer.WriteEndObject();
@@ -116,7 +137,10 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
         if (reader.TokenType == JsonTokenType.Null)
         {
             if (isNullable && property.CanWrite)
+            {
                 property.SetValue(target, null);
+            }
+
             return;
         }
 
@@ -130,7 +154,10 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
         if (string.IsNullOrEmpty(encodedValue))
         {
             if (isNullable && property.CanWrite)
+            {
                 property.SetValue(target, null);
+            }
+
             return;
         }
 
@@ -141,17 +168,25 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
                 .MakeGenericMethod(underlyingType);
             var decoded = method.Invoke(_service, [encodedValue]);
             if (decoded is not null && property.CanWrite)
+            {
                 property.SetValue(target, decoded);
+            }
             else if (isNullable && property.CanWrite)
+            {
                 property.SetValue(target, null);
+            }
         }
         else if (underlyingType == typeof(int))
         {
             var decoded = _service.DecodeId(encodedValue);
             if (decoded is not null && property.CanWrite)
+            {
                 property.SetValue(target, decoded.Value);
+            }
             else if (isNullable && property.CanWrite)
+            {
                 property.SetValue(target, null);
+            }
         }
     }
 
@@ -160,7 +195,9 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
     {
         var value = JsonSerializer.Deserialize(ref reader, meta.Property.PropertyType, options);
         if (meta.Property.CanWrite)
+        {
             meta.Property.SetValue(target, value);
+        }
     }
 
     private void WriteCifraIdValue(Utf8JsonWriter writer, object? value, Type propertyType)
@@ -175,16 +212,26 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
         string? encoded;
 
         if (underlyingType.IsEnum)
+        {
             encoded = _service.EncodeId(Convert.ToInt32(value));
+        }
         else if (underlyingType == typeof(int))
+        {
             encoded = _service.EncodeId((int)value);
+        }
         else
+        {
             encoded = value.ToString();
+        }
 
         if (encoded is not null)
+        {
             writer.WriteStringValue(encoded);
+        }
         else
+        {
             writer.WriteNullValue();
+        }
     }
 
     private static PropMeta[] GetMetadata() =>
@@ -206,7 +253,11 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
         var map = new Dictionary<string, PropMeta>(StringComparer.OrdinalIgnoreCase);
         foreach (var meta in metadata)
         {
-            if (meta.IsIgnored) continue;
+            if (meta.IsIgnored)
+            {
+                continue;
+            }
+
             var name = ResolveJsonName(meta, namingPolicy);
             map[name] = meta;
             map[meta.Property.Name] = meta;
@@ -217,7 +268,9 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
     private static string ResolveJsonName(PropMeta meta, JsonNamingPolicy? namingPolicy)
     {
         if (!string.IsNullOrEmpty(meta.ExplicitJsonName))
+        {
             return meta.ExplicitJsonName!;
+        }
 
         return namingPolicy?.ConvertName(meta.Property.Name) ?? meta.Property.Name;
     }

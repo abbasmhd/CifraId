@@ -31,7 +31,9 @@ public static class CifraIdCoreServiceCollectionExtensions
         services.Configure<HashSettings>(configuration.GetSection(HashSettings.SectionName));
 
         if (!isDevelopment)
+        {
             services.PostConfigure<HashSettings>(s => s.Enabled = true);
+        }
 
         services.TryAddSingleton<ICifraIdOutboundStringTransform, DefaultCifraIdOutboundStringTransform>();
 

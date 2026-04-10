@@ -42,7 +42,11 @@ public sealed class CifraIdService : ICifraIdService
     public TEnum? DecodeEnum<TEnum>(string? encodedEnum) where TEnum : struct, Enum
     {
         var decoded = DecodeId(encodedEnum);
-        if (decoded is null) return null;
+        if (decoded is null)
+        {
+            return null;
+        }
+
         return Enum.IsDefined(typeof(TEnum), decoded.Value)
             ? (TEnum)Enum.ToObject(typeof(TEnum), decoded.Value)
             : null;

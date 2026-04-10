@@ -34,7 +34,9 @@ public static class CifraIdAspNetCoreServiceCollectionExtensions
         services.Configure<MvcOptions>(options =>
         {
             if (!options.ModelBinderProviders.Any(p => p is CifraIdModelBinderProvider))
+            {
                 options.ModelBinderProviders.Insert(0, new CifraIdModelBinderProvider());
+            }
         });
         return services;
     }
@@ -64,7 +66,9 @@ internal sealed class CifraIdMvcJsonOptionsSetup : IPostConfigureOptions<JsonOpt
     public void PostConfigure(string? name, JsonOptions options)
     {
         if (!options.JsonSerializerOptions.Converters.Any(c => c is CifraIdJsonConverterFactory))
+        {
             options.JsonSerializerOptions.Converters.Add(_factory);
+        }
     }
 }
 
@@ -78,6 +82,8 @@ internal sealed class CifraIdHttpJsonOptionsSetup
     public void PostConfigure(string? name, Microsoft.AspNetCore.Http.Json.JsonOptions options)
     {
         if (!options.SerializerOptions.Converters.Any(c => c is CifraIdJsonConverterFactory))
+        {
             options.SerializerOptions.Converters.Add(_factory);
+        }
     }
 }

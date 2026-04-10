@@ -13,7 +13,11 @@ public sealed class NoOpCifraIdService : ICifraIdService
     /// <inheritdoc />
     public int? DecodeId(string? encodedId)
     {
-        if (string.IsNullOrWhiteSpace(encodedId)) return null;
+        if (string.IsNullOrWhiteSpace(encodedId))
+        {
+            return null;
+        }
+
         return int.TryParse(encodedId, out var result) ? result : null;
     }
 
@@ -32,8 +36,16 @@ public sealed class NoOpCifraIdService : ICifraIdService
     /// <inheritdoc />
     public TEnum? DecodeEnum<TEnum>(string? encodedEnum) where TEnum : struct, Enum
     {
-        if (string.IsNullOrWhiteSpace(encodedEnum)) return null;
-        if (!int.TryParse(encodedEnum, out var intValue)) return null;
+        if (string.IsNullOrWhiteSpace(encodedEnum))
+        {
+            return null;
+        }
+
+        if (!int.TryParse(encodedEnum, out var intValue))
+        {
+            return null;
+        }
+
         return Enum.IsDefined(typeof(TEnum), intValue)
             ? (TEnum)Enum.ToObject(typeof(TEnum), intValue)
             : null;

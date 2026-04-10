@@ -1,0 +1,82 @@
+name: Publish NuGet
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'SemVer package version (e.g. 1.0.0 or 1.0.0-preview.1)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Determine version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            V="${{ inputs.version }}"
+          else
+            V="${GITHUB_REF_NAME#v}"
+          fi
+          if [ -z "$V" ]; then
+            echo "Could not determine version."
+            exit 1
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Publishing version: $V"
+
+      - name: Restore, build, test
+        run: |
+          dotnet restore CifraId.slnx
+          dotnet build CifraId.slnx -c Release --no-restore
+          dotnet test CifraId.slnx -c Release --no-build --verbosity normal
+
+      - name: Pack
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          dotnet pack src/CifraId.Core/CifraId.Core.csproj \
+            -c Release -o ./artifacts \
+            -p:Version="$VERSION" -p:PackageVersion="$VERSION" \
+            --no-build
+          dotnet pack src/CifraId.AspNetCore/CifraId.AspNetCore.csproj \
+            -c Release -o ./artifacts \
+            -p:Version="$VERSION" -p:PackageVersion="$VERSION" \
+            --no-build
+
+      - name: Push packages to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "Missing repository secret NUGET_API_KEY."
+            exit 1
+          fi
+          set -e
+          shopt -s nullglob
+          for f in ./artifacts/*.nupkg; do
+            dotnet nuget push "$f" --api-key "$NUGET_API_KEY" \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate
+          done
+          for f in ./artifacts/*.snupkg; do
+            dotnet nuget push "$f" --api-key "$NUGET_API_KEY" \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate
+          done

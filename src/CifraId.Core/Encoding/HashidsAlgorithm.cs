@@ -29,13 +29,17 @@ internal sealed class HashidsAlgorithm
         foreach (var c in alphabet)
         {
             if (seen.Add(c))
+            {
                 uniqueAlphabet.Append(c);
+            }
         }
 
         if (uniqueAlphabet.Length < MinAlphabetLength)
+        {
             throw new ArgumentException(
                 $"Alphabet must contain at least {MinAlphabetLength} unique characters.",
                 nameof(alphabet));
+        }
 
         var currentAlphabet = uniqueAlphabet.ToString();
 
@@ -44,14 +48,18 @@ internal sealed class HashidsAlgorithm
         foreach (var c in separators)
         {
             if (currentAlphabet.Contains(c) && sepSeen.Add(c))
+            {
                 filteredSeps.Append(c);
+            }
         }
 
         var alphaBuilder = new StringBuilder();
         foreach (var c in currentAlphabet)
         {
             if (!filteredSeps.ToString().Contains(c))
+            {
                 alphaBuilder.Append(c);
+            }
         }
 
         currentAlphabet = alphaBuilder.ToString();
@@ -61,7 +69,10 @@ internal sealed class HashidsAlgorithm
             (float)currentAlphabet.Length / currentSeparators.Length > SeparatorDiv)
         {
             var sepsLen = (int)Math.Ceiling(currentAlphabet.Length / SeparatorDiv);
-            if (sepsLen == 1) sepsLen = 2;
+            if (sepsLen == 1)
+            {
+                sepsLen = 2;
+            }
 
             if (sepsLen > currentSeparators.Length)
             {
@@ -98,16 +109,24 @@ internal sealed class HashidsAlgorithm
 
     public string Encode(params long[] numbers)
     {
-        if (numbers.Length == 0) return string.Empty;
+        if (numbers.Length == 0)
+        {
+            return string.Empty;
+        }
 
         foreach (var n in numbers)
         {
-            if (n < 0) return string.Empty;
+            if (n < 0)
+            {
+                return string.Empty;
+            }
         }
 
         long numberHashInt = 0;
         for (var i = 0; i < numbers.Length; i++)
+        {
             numberHashInt += numbers[i] % (i + 100);
+        }
 
         var alphabet = _alphabet;
         var lottery = alphabet[(int)(numberHashInt % alphabet.Length)];
@@ -163,7 +182,10 @@ internal sealed class HashidsAlgorithm
 
     public long[] Decode(string hash)
     {
-        if (string.IsNullOrEmpty(hash)) return [];
+        if (string.IsNullOrEmpty(hash))
+        {
+            return [];
+        }
 
         var guardChars = _guards.ToCharArray();
         var hashArray = hash.Split(guardChars);
@@ -171,7 +193,10 @@ internal sealed class HashidsAlgorithm
         var idx = hashArray.Length >= 2 ? 1 : 0;
         var hashBreakdown = hashArray[idx];
 
-        if (hashBreakdown.Length == 0) return [];
+        if (hashBreakdown.Length == 0)
+        {
+            return [];
+        }
 
         var lottery = hashBreakdown[0];
         hashBreakdown = hashBreakdown[1..];
@@ -184,24 +209,36 @@ internal sealed class HashidsAlgorithm
 
         foreach (var subHash in subHashes)
         {
-            if (subHash.Length == 0) continue;
+            if (subHash.Length == 0)
+            {
+                continue;
+            }
 
             var alphabetSalt = $"{lottery}{_salt}{alphabet}";
             alphabet = ConsistentShuffle(alphabet, alphabetSalt[..alphabet.Length]);
             result.Add(UnhashNumber(subHash, alphabet));
         }
 
-        if (result.Count == 0) return [];
+        if (result.Count == 0)
+        {
+            return [];
+        }
 
         var verification = Encode(result.ToArray());
-        if (verification != hash) return [];
+        if (verification != hash)
+        {
+            return [];
+        }
 
         return result.ToArray();
     }
 
     private static string ConsistentShuffle(string alphabet, string salt)
     {
-        if (string.IsNullOrEmpty(salt)) return alphabet;
+        if (string.IsNullOrEmpty(salt))
+        {
+            return alphabet;
+        }
 
         var chars = alphabet.ToCharArray();
         var p = 0;
@@ -238,7 +275,11 @@ internal sealed class HashidsAlgorithm
         foreach (var c in input)
         {
             var pos = alphabet.IndexOf(c);
-            if (pos < 0) return -1;
+            if (pos < 0)
+            {
+                return -1;
+            }
+
             number = number * alphabet.Length + pos;
         }
 

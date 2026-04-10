@@ -55,7 +55,9 @@ public class OrdersController : ControllerBase
     {
         var orderId = _cifraId.DecodeId(encodedId);
         if (orderId is null)
+        {
             return BadRequest("Invalid order ID.");
+        }
 
         return Ok(new OrderResponseDto
         {
@@ -73,7 +75,9 @@ public class OrdersController : ControllerBase
     public ActionResult<OrderResponseDto[]> SearchOrders([FromQuery] OrderQueryDto query)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         return Ok(new[]
         {

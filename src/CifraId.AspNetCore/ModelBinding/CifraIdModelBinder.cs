@@ -27,7 +27,10 @@ public sealed class CifraIdModelBinder : IModelBinder
 
         foreach (var property in properties)
         {
-            if (!property.CanWrite) continue;
+            if (!property.CanWrite)
+            {
+                continue;
+            }
 
             var cifraIdAttr = property.GetCustomAttribute<CifraIdAttribute>();
             var propertyName = property.Name;
@@ -39,14 +42,21 @@ public sealed class CifraIdModelBinder : IModelBinder
                 valueResult = bindingContext.ValueProvider.GetValue(camelCase);
             }
 
-            if (valueResult == ValueProviderResult.None) continue;
+            if (valueResult == ValueProviderResult.None)
+            {
+                continue;
+            }
 
             var rawValue = valueResult.FirstValue;
 
             if (cifraIdAttr is not null)
+            {
                 BindCifraIdProperty(bindingContext, service, model, property, rawValue);
+            }
             else
+            {
                 BindRegularProperty(model, property, rawValue);
+            }
         }
 
         bindingContext.Result = ModelBindingResult.Success(model);
@@ -64,7 +74,11 @@ public sealed class CifraIdModelBinder : IModelBinder
 
         if (string.IsNullOrEmpty(rawValue))
         {
-            if (isNullable) property.SetValue(model, null);
+            if (isNullable)
+            {
+                property.SetValue(model, null);
+            }
+
             return;
         }
 
@@ -78,25 +92,36 @@ public sealed class CifraIdModelBinder : IModelBinder
             var decoded = method.Invoke(service, [rawValue]);
 
             if (decoded is not null)
+            {
                 property.SetValue(model, decoded);
+            }
             else
+            {
                 bindingContext.ModelState.TryAddModelError(
                     property.Name, $"Invalid encoded value for '{property.Name}'.");
+            }
         }
         else if (underlyingType == typeof(int))
         {
             var decoded = service.DecodeId(rawValue);
             if (decoded is not null)
+            {
                 property.SetValue(model, isNullable ? decoded : decoded.Value);
+            }
             else
+            {
                 bindingContext.ModelState.TryAddModelError(
                     property.Name, $"Invalid encoded value for '{property.Name}'.");
+            }
         }
     }
 
     private static void BindRegularProperty(object model, PropertyInfo property, string? rawValue)
     {
-        if (rawValue is null) return;
+        if (rawValue is null)
+        {
+            return;
+        }
 
         try
         {

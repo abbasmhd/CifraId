@@ -12,7 +12,11 @@ public sealed class NoOpEncoder : IEncoder
     /// <inheritdoc />
     public int? Decode(string? number)
     {
-        if (string.IsNullOrWhiteSpace(number)) return null;
+        if (string.IsNullOrWhiteSpace(number))
+        {
+            return null;
+        }
+
         return int.TryParse(number, out var result) ? result : null;
     }
 }

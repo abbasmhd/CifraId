@@ -42,11 +42,21 @@ public sealed class Encoder : IEncoder
     /// <inheritdoc />
     public long? Encode(int number)
     {
-        if (number == 0) return 0;
-        if (number < 0) return null;
+        if (number == 0)
+        {
+            return 0;
+        }
+
+        if (number < 0)
+        {
+            return null;
+        }
 
         var hash = _hashids.Encode(number);
-        if (string.IsNullOrEmpty(hash)) return null;
+        if (string.IsNullOrEmpty(hash))
+        {
+            return null;
+        }
 
         var sb = new StringBuilder(hash.Length * 2);
         foreach (var c in hash)
@@ -61,30 +71,59 @@ public sealed class Encoder : IEncoder
     /// <inheritdoc />
     public int? Decode(string? number)
     {
-        if (string.IsNullOrWhiteSpace(number)) return null;
-        if (number == "0") return 0;
-        if (number.Length < 2 || number.Length % 2 != 0) return null;
+        if (string.IsNullOrWhiteSpace(number))
+        {
+            return null;
+        }
+
+        if (number == "0")
+        {
+            return 0;
+        }
+
+        if (number.Length < 2 || number.Length % 2 != 0)
+        {
+            return null;
+        }
 
         foreach (var c in number)
         {
-            if (!char.IsDigit(c)) return null;
+            if (!char.IsDigit(c))
+            {
+                return null;
+            }
         }
 
         var sb = new StringBuilder(number.Length / 2);
         for (var i = 0; i < number.Length; i += 2)
         {
             var chunk = number.Substring(i, 2);
-            if (!int.TryParse(chunk, out var code)) return null;
+            if (!int.TryParse(chunk, out var code))
+            {
+                return null;
+            }
+
             code += AsciiOffset;
-            if (code is < 0 or > 127) return null;
+            if (code is < 0 or > 127)
+            {
+                return null;
+            }
+
             sb.Append((char)code);
         }
 
         var hash = sb.ToString();
         var decoded = _hashids.Decode(hash);
 
-        if (decoded.Length != 1) return null;
-        if (decoded[0] > int.MaxValue || decoded[0] < 0) return null;
+        if (decoded.Length != 1)
+        {
+            return null;
+        }
+
+        if (decoded[0] > int.MaxValue || decoded[0] < 0)
+        {
+            return null;
+        }
 
         return (int)decoded[0];
     }

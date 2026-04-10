@@ -39,10 +39,14 @@ public sealed class CifraIdJsonConverterFactory : JsonConverterFactory
             typeToConvert == typeof(DateTimeOffset) || typeToConvert == typeof(Guid) ||
             typeToConvert == typeof(TimeSpan) || typeToConvert.IsEnum ||
             typeToConvert.IsArray || typeToConvert.IsValueType)
+        {
             return false;
+        }
 
         if (typeof(IEnumerable).IsAssignableFrom(typeToConvert))
+        {
             return false;
+        }
 
         return TypeCache.GetOrAdd(typeToConvert, static type =>
             type.GetProperties(BindingFlags.Public | BindingFlags.Instance)

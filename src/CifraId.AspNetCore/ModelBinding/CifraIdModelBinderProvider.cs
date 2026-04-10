@@ -16,7 +16,9 @@ public sealed class CifraIdModelBinderProvider : IModelBinderProvider
         ArgumentNullException.ThrowIfNull(context);
 
         if (!context.Metadata.IsComplexType || context.Metadata.IsCollectionType)
+        {
             return null;
+        }
 
         var modelType = context.Metadata.ModelType;
         var hasCifraIdProperties = modelType
