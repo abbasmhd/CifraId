@@ -4,4 +4,13 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
+  <PropertyGroup Label="Repository and NuGet metadata">
+    <Version>0.0.1</Version>
+    <Authors>abbasmhd</Authors>
+    <PackageProjectUrl>https://github.com/abbasmhd/CifraId</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/abbasmhd/CifraId.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
 </Project>

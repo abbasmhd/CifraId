@@ -8,14 +8,9 @@
 
     <PackageId>CifraId.AspNetCore</PackageId>
     <Title>CifraId AspNetCore</Title>
-    <Version>1.0.0</Version>
-    <Authors>abbasmhd</Authors>
     <Description>ASP.NET Core integration for CifraId reversible obfuscated ID serialization and model binding.</Description>
     <PackageTags>cifraid aspnetcore modelbinding json serialization obfuscation ids</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/your-org/CifraId</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
 
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>

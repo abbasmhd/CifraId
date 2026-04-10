@@ -8,14 +8,9 @@
 
     <PackageId>CifraId.Core</PackageId>
     <Title>CifraId Core</Title>
-    <Version>1.0.0</Version>
-    <Authors>abbasmhd</Authors>
     <Description>Core CifraId support for reversible obfuscated ID encoding and System.Text.Json serialization.</Description>
     <PackageTags>cifraid hashids json serialization obfuscation ids</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/your-org/CifraId</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
 
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>

@@ -1,6 +1,13 @@
 # CifraId
 
+[![CI](https://github.com/abbasmhd/CifraId/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/abbasmhd/CifraId/actions/workflows/ci.yml?query=branch%3Amain)
+[![NuGet CifraId.Core](https://img.shields.io/nuget/v/CifraId.Core)](https://www.nuget.org/packages/CifraId.Core/)
+[![NuGet CifraId.AspNetCore](https://img.shields.io/nuget/v/CifraId.AspNetCore)](https://www.nuget.org/packages/CifraId.AspNetCore/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 ASP.NET Core and System.Text.Json support for **reversible obfuscated ID serialization** and model binding.
+
+**GitHub:** [github.com/abbasmhd/CifraId](https://github.com/abbasmhd/CifraId) · **Issues & discussions:** use the repository [Issues](https://github.com/abbasmhd/CifraId/issues) tab.
 
 CifraId hides raw integer database IDs from API consumers by encoding them as numeric-looking strings. Mark your DTO properties with `[CifraId]` and the library handles JSON serialization, deserialization, and query-string model binding automatically.
 
@@ -361,4 +368,4 @@ Both packages include:
 
 ## License
 
-MIT
+[MIT](LICENSE)
