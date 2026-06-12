@@ -145,7 +145,7 @@ public sealed class LoggingCifraIdService : ICifraIdService
 
     /// <inheritdoc />
     public Task<TEnum?> DecodeEnumAsync<TEnum>(string? encodedEnum) where TEnum : struct, Enum =>
-        Task.FromResult(DecodeEnum(encodedEnum));
+        Task.FromResult(DecodeEnum<TEnum>(encodedEnum));
 
     /// <inheritdoc />
     public string?[] EncodeEnums<TEnum>(params TEnum[] enumValues) where TEnum : struct, Enum =>
@@ -161,5 +161,5 @@ public sealed class LoggingCifraIdService : ICifraIdService
 
     /// <inheritdoc />
     public Task<TEnum?[]> DecodeEnumsAsync<TEnum>(params string[] encodedEnums) where TEnum : struct, Enum =>
-        Task.FromResult(DecodeEnums(encodedEnums));
+        Task.FromResult(DecodeEnums<TEnum>(encodedEnums));
 }

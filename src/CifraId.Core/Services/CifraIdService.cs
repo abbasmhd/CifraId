@@ -124,5 +124,5 @@ public sealed class CifraIdService : ICifraIdService
 
     /// <inheritdoc />
     public Task<TEnum?[]> DecodeEnumsAsync<TEnum>(params string[] encodedEnums) where TEnum : struct, Enum =>
-        Task.FromResult(DecodeEnums(encodedEnums));
+        Task.FromResult(DecodeEnums<TEnum>(encodedEnums));
 }
