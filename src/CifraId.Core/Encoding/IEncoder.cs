@@ -17,6 +17,16 @@ public interface IEncoder
     long? Encode(int number);
 
     /// <summary>
+    /// Encodes a long integer into an obfuscated numeric value.
+    /// </summary>
+    /// <param name="number">The long to encode. Must be non-negative.</param>
+    /// <returns>
+    /// The encoded numeric value, or <c>null</c> if encoding fails
+    /// (e.g. negative input).
+    /// </returns>
+    long? Encode(long number);
+
+    /// <summary>
     /// Decodes an obfuscated numeric string back into the original integer.
     /// </summary>
     /// <param name="number">The encoded numeric string to decode.</param>
@@ -25,4 +35,14 @@ public interface IEncoder
     /// empty, malformed, or does not represent a valid encoded value.
     /// </returns>
     int? Decode(string? number);
+
+    /// <summary>
+    /// Decodes an obfuscated numeric string back into the original long.
+    /// </summary>
+    /// <param name="number">The encoded numeric string to decode.</param>
+    /// <returns>
+    /// The decoded long, or <c>null</c> if the input is <c>null</c>,
+    /// empty, malformed, or does not represent a valid encoded value.
+    /// </returns>
+    long? DecodeLong(string? number);
 }

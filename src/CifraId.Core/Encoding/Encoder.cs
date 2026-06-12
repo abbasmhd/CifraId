@@ -42,6 +42,12 @@ public sealed class Encoder : IEncoder
     /// <inheritdoc />
     public long? Encode(int number)
     {
+        return Encode((long)number);
+    }
+
+    /// <inheritdoc />
+    public long? Encode(long number)
+    {
         if (number == 0)
         {
             return 0;
@@ -70,6 +76,23 @@ public sealed class Encoder : IEncoder
 
     /// <inheritdoc />
     public int? Decode(string? number)
+    {
+        var decoded = DecodeLong(number);
+        if (decoded is null)
+        {
+            return null;
+        }
+
+        if (decoded > int.MaxValue || decoded < 0)
+        {
+            return null;
+        }
+
+        return (int)decoded;
+    }
+
+    /// <inheritdoc />
+    public long? DecodeLong(string? number)
     {
         if (string.IsNullOrWhiteSpace(number))
         {
@@ -120,11 +143,11 @@ public sealed class Encoder : IEncoder
             return null;
         }
 
-        if (decoded[0] > int.MaxValue || decoded[0] < 0)
+        if (decoded[0] < 0)
         {
             return null;
         }
 
-        return (int)decoded[0];
+        return decoded[0];
     }
 }
