@@ -1,33 +1,42 @@
-using CifraId.Encoding;
+using Microsoft.Extensions.Logging;
 
 namespace CifraId.Services;
 
 /// <summary>
-/// Default implementation of <see cref="ICifraIdService"/> that delegates
-/// to an <see cref="IEncoder"/> for obfuscation.
+/// A decorator for <see cref="ICifraIdService"/> that adds logging for encoding/decoding operations.
 /// </summary>
-public sealed class CifraIdService : ICifraIdService
+public sealed class LoggingCifraIdService : ICifraIdService
 {
-    private readonly IEncoder _encoder;
+    private readonly ICifraIdService _inner;
+    private readonly ILogger<LoggingCifraIdService> _logger;
 
-    /// <summary>Creates a new <see cref="CifraIdService"/>.</summary>
-    public CifraIdService(IEncoder encoder)
+    /// <summary>Creates a new <see cref="LoggingCifraIdService"/>.</summary>
+    public LoggingCifraIdService(ICifraIdService inner, ILogger<LoggingCifraIdService> logger)
     {
-        _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
+        _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <inheritdoc />
     public string? EncodeId(int id)
     {
-        var encoded = _encoder.Encode(id);
-        return encoded?.ToString();
+        var result = _inner.EncodeId(id);
+        if (result is null)
+        {
+            _logger.LogWarning("Failed to encode int ID: {Id}", id);
+        }
+        return result;
     }
 
     /// <inheritdoc />
     public string? EncodeId(long id)
     {
-        var encoded = _encoder.Encode(id);
-        return encoded?.ToString();
+        var result = _inner.EncodeId(id);
+        if (result is null)
+        {
+            _logger.LogWarning("Failed to encode long ID: {Id}", id);
+        }
+        return result;
     }
 
     /// <inheritdoc />
@@ -39,10 +48,36 @@ public sealed class CifraIdService : ICifraIdService
         Task.FromResult(EncodeId(id));
 
     /// <inheritdoc />
-    public int? DecodeId(string? encodedId) => _encoder.Decode(encodedId);
+    public int? DecodeId(string? encodedId)
+    {
+        if (string.IsNullOrWhiteSpace(encodedId))
+        {
+            return null;
+        }
+
+        var result = _inner.DecodeId(encodedId);
+        if (result is null)
+        {
+            _logger.LogWarning("Failed to decode ID: {EncodedId}", encodedId);
+        }
+        return result;
+    }
 
     /// <inheritdoc />
-    public long? DecodeIdLong(string? encodedId) => _encoder.DecodeLong(encodedId);
+    public long? DecodeIdLong(string? encodedId)
+    {
+        if (string.IsNullOrWhiteSpace(encodedId))
+        {
+            return null;
+        }
+
+        var result = _inner.DecodeIdLong(encodedId);
+        if (result is null)
+        {
+            _logger.LogWarning("Failed to decode ID to long: {EncodedId}", encodedId);
+        }
+        return result;
+    }
 
     /// <inheritdoc />
     public Task<int?> DecodeIdAsync(string? encodedId) =>
@@ -95,20 +130,22 @@ public sealed class CifraIdService : ICifraIdService
     /// <inheritdoc />
     public TEnum? DecodeEnum<TEnum>(string? encodedEnum) where TEnum : struct, Enum
     {
-        var decoded = DecodeId(encodedEnum);
-        if (decoded is null)
+        if (string.IsNullOrWhiteSpace(encodedEnum))
         {
             return null;
         }
 
-        return Enum.IsDefined(typeof(TEnum), decoded.Value)
-            ? (TEnum)Enum.ToObject(typeof(TEnum), decoded.Value)
-            : null;
+        var result = _inner.DecodeEnum<TEnum>(encodedEnum);
+        if (result is null)
+        {
+            _logger.LogWarning("Failed to decode enum value: {EncodedEnum}", encodedEnum);
+        }
+        return result;
     }
 
     /// <inheritdoc />
     public Task<TEnum?> DecodeEnumAsync<TEnum>(string? encodedEnum) where TEnum : struct, Enum =>
-        Task.FromResult(DecodeEnum<TEnum>(encodedEnum));
+        Task.FromResult(DecodeEnum(encodedEnum));
 
     /// <inheritdoc />
     public string?[] EncodeEnums<TEnum>(params TEnum[] enumValues) where TEnum : struct, Enum =>

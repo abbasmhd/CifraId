@@ -16,6 +16,7 @@ namespace CifraId.Json;
 public sealed class CifraIdJsonConverterFactory : JsonConverterFactory
 {
     private static readonly ConcurrentDictionary<Type, bool> TypeCache = new();
+    private static readonly ConcurrentDictionary<Type, JsonConverter> ConverterCache = new();
 
     private readonly ICifraIdService _service;
     private readonly ICifraIdOutboundStringTransform _transform;
@@ -56,7 +57,25 @@ public sealed class CifraIdJsonConverterFactory : JsonConverterFactory
     /// <inheritdoc />
     public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
-        var converterType = typeof(CifraIdJsonConverter<>).MakeGenericType(typeToConvert);
-        return (JsonConverter)Activator.CreateInstance(converterType, _service, _transform)!;
+        return ConverterCache.GetOrAdd(typeToConvert, static (type, args) =>
+        {
+            var (service, transform) = args;
+            var converterType = typeof(CifraIdJsonConverter<>).MakeGenericType(type);
+            try
+            {
+                return (JsonConverter)Activator.CreateInstance(converterType, service, transform)!;
+            }
+            catch (MissingMethodException ex)
+            {
+                throw new JsonException(
+                    $"Cannot create CifraIdJsonConverter for type '{type.Name}'. " +
+                    "The type must be a class with a public parameterless constructor.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new JsonException(
+                    $"Failed to create CifraIdJsonConverter for type '{type.Name}'.", ex);
+            }
+        }, (_service, _transform));
     }
 }

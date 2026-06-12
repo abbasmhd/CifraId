@@ -187,11 +187,8 @@ internal sealed class HashidsAlgorithm
             return [];
         }
 
-        var guardChars = _guards.ToCharArray();
-        var hashArray = hash.Split(guardChars);
-
-        var idx = hashArray.Length >= 2 ? 1 : 0;
-        var hashBreakdown = hashArray[idx];
+        // Only strip guards from the ends, not from within the hash body
+        var hashBreakdown = StripGuards(hash);
 
         if (hashBreakdown.Length == 0)
         {
@@ -231,6 +228,56 @@ internal sealed class HashidsAlgorithm
         }
 
         return result.ToArray();
+    }
+
+    private string StripGuards(string hash)
+    {
+        if (string.IsNullOrEmpty(hash))
+        {
+            return string.Empty;
+        }
+
+        var hashSpan = hash.AsSpan();
+        var guardSet = _guards.AsSpan();
+
+        // Find first guard position
+        var firstGuard = -1;
+        for (var i = 0; i < hashSpan.Length; i++)
+        {
+            if (guardSet.Contains(hashSpan[i]))
+            {
+                firstGuard = i;
+                break;
+            }
+        }
+
+        // Find last guard position
+        var lastGuard = -1;
+        for (var i = hashSpan.Length - 1; i >= 0; i--)
+        {
+            if (guardSet.Contains(hashSpan[i]))
+            {
+                lastGuard = i;
+                break;
+            }
+        }
+
+        // If no guards found, return original
+        if (firstGuard == -1)
+        {
+            return hash;
+        }
+
+        // Extract the hash body between guards
+        var start = firstGuard + 1;
+        var end = lastGuard;
+
+        if (start >= end || start >= hashSpan.Length)
+        {
+            return string.Empty;
+        }
+
+        return hashSpan[start..end].ToString();
     }
 
     private static string ConsistentShuffle(string alphabet, string salt)

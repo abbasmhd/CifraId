@@ -22,7 +22,17 @@ public sealed class CifraIdModelBinder : IModelBinder
             .GetRequiredService<ICifraIdService>();
 
         var modelType = bindingContext.ModelType;
-        var model = Activator.CreateInstance(modelType)!;
+        object model;
+        try
+        {
+            model = Activator.CreateInstance(modelType)!;
+        }
+        catch (MissingMethodException)
+        {
+            bindingContext.Result = ModelBindingResult.Failed();
+            return Task.CompletedTask;
+        }
+
         var properties = modelType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
         foreach (var property in properties)
@@ -44,6 +54,12 @@ public sealed class CifraIdModelBinder : IModelBinder
 
             if (valueResult == ValueProviderResult.None)
             {
+                if (cifraIdAttr is not null && !IsNullableValueType(property.PropertyType))
+                {
+                    bindingContext.ModelState.TryAddModelError(
+                        property.Name, $"A value for '{property.Name}' is required.");
+                }
+
                 continue;
             }
 
@@ -114,6 +130,11 @@ public sealed class CifraIdModelBinder : IModelBinder
                     property.Name, $"Invalid encoded value for '{property.Name}'.");
             }
         }
+    }
+
+    private static bool IsNullableValueType(Type propertyType)
+    {
+        return Nullable.GetUnderlyingType(propertyType) is not null || !propertyType.IsValueType;
     }
 
     private static void BindRegularProperty(object model, PropertyInfo property, string? rawValue)
