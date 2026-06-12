@@ -187,8 +187,7 @@ internal sealed class HashidsAlgorithm
             return [];
         }
 
-        // Only strip guards from the ends, not from within the hash body
-        var hashBreakdown = StripGuards(hash);
+        var hashBreakdown = ExtractHashBody(hash);
 
         if (hashBreakdown.Length == 0)
         {
@@ -196,20 +195,21 @@ internal sealed class HashidsAlgorithm
         }
 
         var lottery = hashBreakdown[0];
-        hashBreakdown = hashBreakdown[1..];
+        var hashBuffer = hashBreakdown[1..];
+
+        var separatorRanges = Split(hashBuffer.AsSpan(), _separators.AsSpan());
 
         var alphabet = _alphabet;
-        var separatorChars = _separators.ToCharArray();
-        var subHashes = hashBreakdown.Split(separatorChars);
+        var result = new List<long>(separatorRanges.Count);
 
-        var result = new List<long>();
-
-        foreach (var subHash in subHashes)
+        foreach (var (start, length) in separatorRanges)
         {
-            if (subHash.Length == 0)
+            if (length == 0)
             {
                 continue;
             }
+
+            var subHash = hashBuffer.Substring(start, length);
 
             var alphabetSalt = $"{lottery}{_salt}{alphabet}";
             alphabet = ConsistentShuffle(alphabet, alphabetSalt[..alphabet.Length]);
@@ -230,54 +230,54 @@ internal sealed class HashidsAlgorithm
         return result.ToArray();
     }
 
-    private string StripGuards(string hash)
+    private string ExtractHashBody(string hash)
     {
         if (string.IsNullOrEmpty(hash))
         {
             return string.Empty;
         }
 
-        var hashSpan = hash.AsSpan();
-        var guardSet = _guards.AsSpan();
-
-        // Find first guard position
-        var firstGuard = -1;
-        for (var i = 0; i < hashSpan.Length; i++)
-        {
-            if (guardSet.Contains(hashSpan[i]))
-            {
-                firstGuard = i;
-                break;
-            }
-        }
-
-        // Find last guard position
-        var lastGuard = -1;
-        for (var i = hashSpan.Length - 1; i >= 0; i--)
-        {
-            if (guardSet.Contains(hashSpan[i]))
-            {
-                lastGuard = i;
-                break;
-            }
-        }
-
-        // If no guards found, return original
-        if (firstGuard == -1)
-        {
-            return hash;
-        }
-
-        // Extract the hash body between guards
-        var start = firstGuard + 1;
-        var end = lastGuard;
-
-        if (start >= end || start >= hashSpan.Length)
+        var guardRanges = Split(hash.AsSpan(), _guards.AsSpan());
+        if (guardRanges.Count == 0)
         {
             return string.Empty;
         }
 
-        return hashSpan[start..end].ToString();
+        var unguardedIndex = guardRanges.Count is 3 or 2 ? 1 : 0;
+        var (start, length) = guardRanges[unguardedIndex];
+        return hash.Substring(start, length);
+    }
+
+    private static List<(int Start, int Length)> Split(ReadOnlySpan<char> line, ReadOnlySpan<char> separators)
+    {
+        var ranges = new List<(int Start, int Length)>();
+        var indexStart = 0;
+
+        while (indexStart < line.Length)
+        {
+            var nextSeparatorIndex = line[indexStart..].IndexOfAny(separators);
+            if (nextSeparatorIndex == 0)
+            {
+                indexStart++;
+                continue;
+            }
+
+            if (nextSeparatorIndex == -1)
+            {
+                var remaining = line.Length - indexStart;
+                if (remaining > 0)
+                {
+                    ranges.Add((indexStart, remaining));
+                }
+
+                break;
+            }
+
+            ranges.Add((indexStart, nextSeparatorIndex));
+            indexStart += nextSeparatorIndex + 1;
+        }
+
+        return ranges;
     }
 
     private static string ConsistentShuffle(string alphabet, string salt)
