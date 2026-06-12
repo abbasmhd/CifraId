@@ -63,7 +63,9 @@ public class HashSettingsTests
         services.AddCifraIdServices(config, isDevelopment: true);
         var provider = services.BuildServiceProvider();
 
-        Assert.IsType<NoOpCifraIdService>(provider.GetRequiredService<ICifraIdService>());
+        var service = provider.GetRequiredService<ICifraIdService>();
+        Assert.IsType<LoggingCifraIdService>(service);
+        Assert.Equal("42", service.EncodeId(42));
     }
 
     [Fact]
@@ -98,7 +100,9 @@ public class HashSettingsTests
         var provider = services.BuildServiceProvider();
 
         Assert.IsType<Encoder>(provider.GetRequiredService<IEncoder>());
-        Assert.IsType<CifraIdService>(provider.GetRequiredService<ICifraIdService>());
+        var service = provider.GetRequiredService<ICifraIdService>();
+        Assert.IsType<LoggingCifraIdService>(service);
+        Assert.NotEqual("42", service.EncodeId(42));
     }
 
     [Fact]
