@@ -213,7 +213,18 @@ public sealed class CifraIdJsonConverter<T> : JsonConverter<T> where T : class
 
         if (underlyingType.IsEnum)
         {
-            encoded = _service.EncodeId(Convert.ToInt32(value));
+            var enumUnderlyingType = Enum.GetUnderlyingType(underlyingType);
+            long enumValue;
+            if (enumUnderlyingType == typeof(long) || enumUnderlyingType == typeof(ulong))
+            {
+                // Truncate long/ulong-backed enums to int since EncodeId only supports int
+                enumValue = Convert.ToInt64(value);
+            }
+            else
+            {
+                enumValue = Convert.ToInt32(value);
+            }
+            encoded = _service.EncodeId((int)enumValue);
         }
         else if (underlyingType == typeof(int))
         {

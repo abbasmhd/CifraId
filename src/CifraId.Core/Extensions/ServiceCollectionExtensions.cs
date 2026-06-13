@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using CifraId.Configuration;
 using CifraId.Encoding;
@@ -48,9 +50,19 @@ public static class CifraIdCoreServiceCollectionExtensions
         services.AddSingleton<ICifraIdService>(sp =>
         {
             var settings = sp.GetRequiredService<IOptions<HashSettings>>().Value;
-            return !settings.Enabled && isDevelopment
-                ? new NoOpCifraIdService()
-                : new CifraIdService(sp.GetRequiredService<IEncoder>());
+            ICifraIdService inner;
+            if (!settings.Enabled && isDevelopment)
+            {
+                inner = new NoOpCifraIdService();
+            }
+            else
+            {
+                inner = new CifraIdService(sp.GetRequiredService<IEncoder>());
+            }
+
+            var logger = sp.GetService<ILogger<LoggingCifraIdService>>()
+                ?? NullLogger<LoggingCifraIdService>.Instance;
+            return new LoggingCifraIdService(inner, logger);
         });
 
         return services;

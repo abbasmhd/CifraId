@@ -1,23 +1,51 @@
+using Microsoft.Extensions.Logging;
+
 namespace CifraId.Services;
 
 /// <summary>
-/// Pass-through implementation of <see cref="ICifraIdService"/> used
-/// when encoding is disabled in development mode.
-/// Values are returned as-is without obfuscation.
+/// A decorator for <see cref="ICifraIdService"/> that adds logging for encoding/decoding operations.
 /// </summary>
-public sealed class NoOpCifraIdService : ICifraIdService
+public sealed class LoggingCifraIdService : ICifraIdService
 {
-    /// <inheritdoc />
-    public string? EncodeId(int id) => id.ToString();
+    private readonly ICifraIdService _inner;
+    private readonly ILogger<LoggingCifraIdService> _logger;
+
+    /// <summary>Creates a new <see cref="LoggingCifraIdService"/>.</summary>
+    public LoggingCifraIdService(ICifraIdService inner, ILogger<LoggingCifraIdService> logger)
+    {
+        _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
     /// <inheritdoc />
-    public string? EncodeId(long id) => id.ToString();
+    public string? EncodeId(int id)
+    {
+        var result = _inner.EncodeId(id);
+        if (result is null)
+        {
+            _logger.LogWarning("Failed to encode int ID: {Id}", id);
+        }
+        return result;
+    }
 
     /// <inheritdoc />
-    public Task<string?> EncodeIdAsync(int id) => Task.FromResult(EncodeId(id));
+    public string? EncodeId(long id)
+    {
+        var result = _inner.EncodeId(id);
+        if (result is null)
+        {
+            _logger.LogWarning("Failed to encode long ID: {Id}", id);
+        }
+        return result;
+    }
 
     /// <inheritdoc />
-    public Task<string?> EncodeIdAsync(long id) => Task.FromResult(EncodeId(id));
+    public Task<string?> EncodeIdAsync(int id) =>
+        Task.FromResult(EncodeId(id));
+
+    /// <inheritdoc />
+    public Task<string?> EncodeIdAsync(long id) =>
+        Task.FromResult(EncodeId(id));
 
     /// <inheritdoc />
     public int? DecodeId(string? encodedId)
@@ -27,7 +55,12 @@ public sealed class NoOpCifraIdService : ICifraIdService
             return null;
         }
 
-        return int.TryParse(encodedId, out var result) ? result : null;
+        var result = _inner.DecodeId(encodedId);
+        if (result is null)
+        {
+            _logger.LogWarning("Failed to decode ID: {EncodedId}", encodedId);
+        }
+        return result;
     }
 
     /// <inheritdoc />
@@ -38,14 +71,21 @@ public sealed class NoOpCifraIdService : ICifraIdService
             return null;
         }
 
-        return long.TryParse(encodedId, out var result) ? result : null;
+        var result = _inner.DecodeIdLong(encodedId);
+        if (result is null)
+        {
+            _logger.LogWarning("Failed to decode ID to long: {EncodedId}", encodedId);
+        }
+        return result;
     }
 
     /// <inheritdoc />
-    public Task<int?> DecodeIdAsync(string? encodedId) => Task.FromResult(DecodeId(encodedId));
+    public Task<int?> DecodeIdAsync(string? encodedId) =>
+        Task.FromResult(DecodeId(encodedId));
 
     /// <inheritdoc />
-    public Task<long?> DecodeIdLongAsync(string? encodedId) => Task.FromResult(DecodeIdLong(encodedId));
+    public Task<long?> DecodeIdLongAsync(string? encodedId) =>
+        Task.FromResult(DecodeIdLong(encodedId));
 
     /// <inheritdoc />
     public string?[] EncodeIds(params int[] ids) =>
@@ -81,7 +121,7 @@ public sealed class NoOpCifraIdService : ICifraIdService
 
     /// <inheritdoc />
     public string? EncodeEnum<TEnum>(TEnum enumValue) where TEnum : struct, Enum =>
-        Convert.ToInt32(enumValue).ToString();
+        EncodeId(Convert.ToInt32(enumValue));
 
     /// <inheritdoc />
     public Task<string?> EncodeEnumAsync<TEnum>(TEnum enumValue) where TEnum : struct, Enum =>
@@ -95,14 +135,12 @@ public sealed class NoOpCifraIdService : ICifraIdService
             return null;
         }
 
-        if (!int.TryParse(encodedEnum, out var intValue))
+        var result = _inner.DecodeEnum<TEnum>(encodedEnum);
+        if (result is null)
         {
-            return null;
+            _logger.LogWarning("Failed to decode enum value: {EncodedEnum}", encodedEnum);
         }
-
-        return Enum.IsDefined(typeof(TEnum), intValue)
-            ? (TEnum)Enum.ToObject(typeof(TEnum), intValue)
-            : null;
+        return result;
     }
 
     /// <inheritdoc />

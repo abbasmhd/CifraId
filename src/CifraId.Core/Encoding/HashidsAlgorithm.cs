@@ -187,11 +187,7 @@ internal sealed class HashidsAlgorithm
             return [];
         }
 
-        var guardChars = _guards.ToCharArray();
-        var hashArray = hash.Split(guardChars);
-
-        var idx = hashArray.Length >= 2 ? 1 : 0;
-        var hashBreakdown = hashArray[idx];
+        var hashBreakdown = ExtractHashBody(hash);
 
         if (hashBreakdown.Length == 0)
         {
@@ -199,20 +195,21 @@ internal sealed class HashidsAlgorithm
         }
 
         var lottery = hashBreakdown[0];
-        hashBreakdown = hashBreakdown[1..];
+        var hashBuffer = hashBreakdown[1..];
+
+        var separatorRanges = Split(hashBuffer.AsSpan(), _separators.AsSpan());
 
         var alphabet = _alphabet;
-        var separatorChars = _separators.ToCharArray();
-        var subHashes = hashBreakdown.Split(separatorChars);
+        var result = new List<long>(separatorRanges.Count);
 
-        var result = new List<long>();
-
-        foreach (var subHash in subHashes)
+        foreach (var (start, length) in separatorRanges)
         {
-            if (subHash.Length == 0)
+            if (length == 0)
             {
                 continue;
             }
+
+            var subHash = hashBuffer.Substring(start, length);
 
             var alphabetSalt = $"{lottery}{_salt}{alphabet}";
             alphabet = ConsistentShuffle(alphabet, alphabetSalt[..alphabet.Length]);
@@ -231,6 +228,56 @@ internal sealed class HashidsAlgorithm
         }
 
         return result.ToArray();
+    }
+
+    private string ExtractHashBody(string hash)
+    {
+        if (string.IsNullOrEmpty(hash))
+        {
+            return string.Empty;
+        }
+
+        var guardRanges = Split(hash.AsSpan(), _guards.AsSpan());
+        if (guardRanges.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var unguardedIndex = guardRanges.Count is 3 or 2 ? 1 : 0;
+        var (start, length) = guardRanges[unguardedIndex];
+        return hash.Substring(start, length);
+    }
+
+    private static List<(int Start, int Length)> Split(ReadOnlySpan<char> line, ReadOnlySpan<char> separators)
+    {
+        var ranges = new List<(int Start, int Length)>();
+        var indexStart = 0;
+
+        while (indexStart < line.Length)
+        {
+            var nextSeparatorIndex = line[indexStart..].IndexOfAny(separators);
+            if (nextSeparatorIndex == 0)
+            {
+                indexStart++;
+                continue;
+            }
+
+            if (nextSeparatorIndex == -1)
+            {
+                var remaining = line.Length - indexStart;
+                if (remaining > 0)
+                {
+                    ranges.Add((indexStart, remaining));
+                }
+
+                break;
+            }
+
+            ranges.Add((indexStart, nextSeparatorIndex));
+            indexStart += nextSeparatorIndex + 1;
+        }
+
+        return ranges;
     }
 
     private static string ConsistentShuffle(string alphabet, string salt)
