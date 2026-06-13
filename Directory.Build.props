@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Repository and NuGet metadata">
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Authors>abbasmhd</Authors>
     <PackageProjectUrl>https://github.com/abbasmhd/CifraId</PackageProjectUrl>
     <RepositoryUrl>https://github.com/abbasmhd/CifraId.git</RepositoryUrl>
